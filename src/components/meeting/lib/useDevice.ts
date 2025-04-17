@@ -7,9 +7,14 @@ export const useDevice = () => {
   let animationId = 0;
   const hasAudioInput = ref(false);
   const hasVideoInput = ref(false);
+  const hasScreenInput = ref(false);
   // const hasAudioOutput = ref(false);
-  let audioStream: MediaStream | null = null;
-  let videoStream: MediaStream | null = null;
+
+  const localStream = {
+    audioStream: null as MediaStream | null,
+    videoStream: null as MediaStream | null,
+    screenStream: null as MediaStream | null,
+  };
 
   async function init() {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -68,11 +73,11 @@ export const useDevice = () => {
 
   async function openMicro() {
     try {
-      audioStream = await navigator.mediaDevices.getUserMedia({
+      localStream.audioStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
       hasAudioInput.value = true;
-      watchMicro(audioStream);
+      watchMicro(localStream.audioStream);
     } catch (error) {
       console.log(error);
     }
@@ -80,22 +85,18 @@ export const useDevice = () => {
 
   function closeMicro() {
     hasAudioInput.value = false;
-    const audioTracks = audioStream?.getTracks();
-    if (audioTracks) {
-      for (const audioTrack of audioTracks) {
-        audioTrack.stop();
-      }
-    }
+    const audioTracks = localStream.audioStream?.getTracks();
+    audioTracks?.forEach((track) => track.stop());
     cancelAnimationFrame(animationId);
   }
 
   async function openVideo() {
     try {
       tip.value = "正在打开摄像头...";
-      videoStream = await navigator.mediaDevices.getUserMedia({
+      localStream.videoStream = await navigator.mediaDevices.getUserMedia({
         video: true,
       });
-      videoRef.value.srcObject = videoStream;
+      videoRef.value.srcObject = localStream.videoStream;
       hasVideoInput.value = true;
     } catch (e) {
       console.log(e);
@@ -120,15 +121,34 @@ export const useDevice = () => {
   function closeVideo() {
     hasVideoInput.value = false;
     videoRef.value!.srcObject = null;
-
-    const videoTracks = videoStream?.getTracks();
-    if (videoTracks) {
-      for (const videoTrack of videoTracks) {
-        videoTrack.stop();
-      }
-    }
+    const videoTracks = localStream.videoStream?.getTracks();
+    videoTracks?.forEach((track) => track.stop());
     tip.value = "摄像头处于关闭状态";
   }
+
+  /**
+   * 打开屏幕共享
+   */
+  async function openScreen() {
+    const screenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
+    });
+    // 第二次打开屏幕共享时，关闭之前的屏幕共享
+    const oldScreenTracks = localStream.screenStream?.getTracks();
+    oldScreenTracks?.forEach((track) => track.stop());
+
+    videoRef.value.srcObject = screenStream;
+    localStream.screenStream = screenStream;
+    hasScreenInput.value = true;
+
+    // 屏幕共享时，关闭摄像头
+    hasVideoInput.value = false;
+    const videoTracks = localStream.videoStream?.getTracks();
+    videoTracks?.forEach((track) => track.stop());
+  }
+
+  function closeScreen() {}
 
   onUnmounted(() => {
     cancelAnimationFrame(animationId);
@@ -144,5 +164,9 @@ export const useDevice = () => {
     videoRef,
     tip,
     volume,
+
+    openScreen,
+    closeScreen,
+    hasScreenInput,
   };
 };
