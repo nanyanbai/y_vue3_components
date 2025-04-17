@@ -5,6 +5,7 @@
     <div class="bottom-wrapper">
       <MicroButton
         :disabled="!hasAudioInput"
+        :volume="volume"
         @open="openMicro"
         @close="closeMicro"
       />
@@ -32,6 +33,7 @@ const {
   hasVideoInput,
   videoRef,
   tip,
+  volume,
 } = useDevice();
 </script>
 
@@ -56,7 +58,7 @@ const {
   }
 }
 
-video { 
+video {
   width: 1000px;
   height: 500px;
   object-fit: cover;

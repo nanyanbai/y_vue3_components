@@ -1,8 +1,10 @@
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 
 export const useDevice = () => {
   const videoRef = ref();
   const tip = ref("");
+  const volume = ref(0);
+  let animationId = 0;
   const hasAudioInput = ref(false);
   const hasVideoInput = ref(false);
   // const hasAudioOutput = ref(false);
@@ -24,15 +26,56 @@ export const useDevice = () => {
     } else {
       tip.value = "摄像头处于关闭状态";
     }
+
+    if (hasAudioInput.value) {
+      openMicro();
+    }
   }
 
   init();
 
+  /**
+   * 监听麦克风
+   * @param stream - The media stream from the microphone
+   */
+  function watchMicro(stream: MediaStream) {
+    const audioContext = new window.AudioContext();
+    // 将麦克风的声音输入到这个AudioContext中
+    const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+    // 创建一个AnalyserNode，用于获取音频时间和频率数据
+    const analyser = audioContext.createAnalyser();
+    // 连接节点
+    mediaStreamSource.connect(analyser);
+    analyser.fftSize = 1024;
+    const bufferLength = analyser.frequencyBinCount;
+    // 获取音量数据
+    const dataArray = new Uint8Array(bufferLength);
+
+    function set() {
+      analyser.getByteTimeDomainData(dataArray);
+      let value: number = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        value += dataArray[i];
+      }
+      // 计算平均音量， 并放大两倍
+      value = (value / bufferLength) * 2;
+      // console.log(value);
+      volume.value = value > 100 ? 100 : value;
+      animationId = requestAnimationFrame(set);
+    }
+    set();
+  }
+
   async function openMicro() {
-    audioStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    });
-    hasAudioInput.value = true;
+    try {
+      audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      hasAudioInput.value = true;
+      watchMicro(audioStream);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   function closeMicro() {
@@ -43,6 +86,7 @@ export const useDevice = () => {
         audioTrack.stop();
       }
     }
+    cancelAnimationFrame(animationId);
   }
 
   async function openVideo() {
@@ -86,6 +130,10 @@ export const useDevice = () => {
     tip.value = "摄像头处于关闭状态";
   }
 
+  onUnmounted(() => {
+    cancelAnimationFrame(animationId);
+  });
+
   return {
     openMicro,
     closeMicro,
@@ -95,5 +143,6 @@ export const useDevice = () => {
     hasVideoInput,
     videoRef,
     tip,
+    volume,
   };
 };
