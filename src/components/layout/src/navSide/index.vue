@@ -53,6 +53,12 @@ const data = [
     name: "右键菜单",
     index: "/contextMenu",
   },
+
+  {
+    icon: "Apple",
+    name: "会议",
+    index: "/meeting",
+  },
 ];
 </script>
 

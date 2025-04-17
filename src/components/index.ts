@@ -7,6 +7,7 @@ import form from "./form";
 import table from "./table";
 import contextMenu from "./contextMenu";
 import echarts from "./echarts";
+import meeting from "./meeting";
 
 const components = [
   chooseArea,
@@ -16,6 +17,7 @@ const components = [
   table,
   echarts,
   contextMenu,
+  meeting,
 ];
 
 export default {

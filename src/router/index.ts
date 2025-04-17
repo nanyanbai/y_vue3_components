@@ -52,6 +52,11 @@ const routes: RouteRecordRaw[] = [
         name: "ContextMenu",
         component: () => import("../pages/contextMenu/index.vue"),
       },
+      {
+        path: "/meeting",
+        name: "Meeting",
+        component: () => import("../pages/meeting/index.vue"),
+      },
     ],
   },
 ];

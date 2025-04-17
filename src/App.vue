@@ -3,6 +3,6 @@
 </template>
 
 <style lang="scss">
-@import "./styles/base.scss";
-@import "./styles/ui.scss";
+@use "@/styles/base.scss" as base;
+@use "@/styles/ui.scss" as ui;
 </style>
