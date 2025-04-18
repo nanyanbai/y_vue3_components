@@ -16,7 +16,7 @@ export const useDevice = () => {
     screenStream: null as MediaStream | null,
   };
 
-  async function init() {
+  async function initDevice() {
     const devices = await navigator.mediaDevices.enumerateDevices();
 
     const audioinput = devices.find((item) => item.kind === "audioinput");
@@ -27,17 +27,15 @@ export const useDevice = () => {
     hasVideoInput.value = !!videoinput?.deviceId;
 
     if (hasVideoInput.value) {
-      openVideo();
+      await openVideo();
     } else {
       tip.value = "摄像头处于关闭状态";
     }
 
     if (hasAudioInput.value) {
-      openMicro();
+      await openMicro();
     }
   }
-
-  init();
 
   /**
    * 监听麦克风
@@ -168,5 +166,7 @@ export const useDevice = () => {
     openScreen,
     closeScreen,
     hasScreenInput,
+    localStream,
+    initDevice,
   };
 };

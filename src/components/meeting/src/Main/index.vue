@@ -4,7 +4,11 @@
       <div class="main-video">
         <video ref="videoRef" muted autoplay></video>
       </div>
-      <div class="member-list"></div>
+      <div class="member-list">
+        <div class="member-item">
+          <video ref="remoteRef" muted autoplay></video>
+        </div>
+      </div>
     </div>
 
     <div class="footer">
@@ -20,7 +24,6 @@
           @open="openVideo"
           @close="closeVideo"
         />
-
         <ScreenButton @open="openScreen" @close="closeScreen" />
       </div>
     </div>
@@ -33,6 +36,7 @@ import VideoButton from "./VideoButton.vue";
 import ScreenButton from "./ScreenButton.vue";
 
 import { useDevice } from "../../lib/useDevice.ts";
+import { onMounted } from "vue";
 
 const {
   openMicro,
@@ -46,43 +50,17 @@ const {
   volume,
   openScreen,
   closeScreen,
+  localStream,
+  initDevice,
 } = useDevice();
+
+async function init() {
+  await initDevice();
+}
+
+onMounted(init);
 </script>
 
 <style lang="scss" scoped>
-.main-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #000;
-
-  .content-wrapper {
-    .main-video {
-      padding: 20px;
-
-      video {
-        width: 100%;
-        height: 800px;
-        object-fit: cover;
-      }
-    }
-  }
-
-  .footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    .btn-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 70px;
-      gap: 20px;
-      background: #000;
-    }
-  }
-}
+@import "./index.scss";
 </style>
